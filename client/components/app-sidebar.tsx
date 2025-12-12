@@ -45,7 +45,7 @@ const data = {
   ],
 navMain: [
   {
-    title: "Playgroundssssssssssss",
+    title: "Playground",
     url: "#",
     icon: Mail,
   },
