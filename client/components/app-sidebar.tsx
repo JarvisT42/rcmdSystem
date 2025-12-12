@@ -14,6 +14,7 @@ import {
   SquareTerminal,
   Mail,
   List,
+  Settings,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -44,17 +45,22 @@ const data = {
    
   ],
 navMain: [
-  {
-    title: "Playgrou2222",
-    url: "#",
-    icon: Mail,
-  },
-  {
-    title: "History",
-    url: "#",
-    icon: List,
-  }
-],
+    {
+      title: "Dashboard",
+      url: "/user/dashboard",
+      icon: Mail,
+    },
+    {
+      title: "History",
+      url: "/user/history",
+      icon: List,
+    },
+    {
+      title: "Settings",
+      url: "/user/settings",  // Changed to "/user/settings"
+      icon: Settings,
+    }
+  ],
 
  
 }
