@@ -215,7 +215,7 @@ export default function DataTableDemo() {
 
   return (
     <div className="grid gap-4 h-full">
-      <div className="rounded-xl border shadow-lg p-6 bg-white">
+      <div className="rounded-xl border shadow-lg p-6 pl-10 pr-10 bg-white">
         <h2 className="text-xl font-semibold mb-4">List</h2>
 
         <div className="w-full">

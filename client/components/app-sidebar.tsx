@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   AudioWaveform,
   BookOpen,
@@ -15,19 +15,19 @@ import {
   Mail,
   List,
   Settings,
-} from "lucide-react"
+} from "lucide-react";
 
-import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
-import { NavUser } from "@/components/nav-user"
-import { TeamSwitcher } from "@/components/team-switcher"
+import { NavMain } from "@/components/nav-main";
+import { NavProjects } from "@/components/nav-projects";
+import { NavUser } from "@/components/nav-user";
+import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 // This is sample data.
 const data = {
@@ -41,29 +41,26 @@ const data = {
       name: "Acme Inc",
       logo: GalleryVerticalEnd,
       plan: "Enterprise",
-    }
-   
+    },
   ],
-navMain: [
+  navMain: [
     {
       title: "Dashboard",
       url: "/user/dashboard",
       icon: Mail,
     },
     {
-      title: "History",
-      url: "/user/history",
+      title: "Request List",
+      url: "/user/list",
       icon: List,
     },
     {
       title: "Settings",
-      url: "/user/settings",  // Changed to "/user/settings"
+      url: "/user/settings", // Changed to "/user/settings"
       icon: Settings,
-    }
+    },
   ],
-
- 
-}
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -73,13 +70,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-     
-     
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

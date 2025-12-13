@@ -16,27 +16,64 @@ import {
 type ItemRow = {
   qty: string;
   unit: string;
-  item: string;
-  description: string;
+  itemDescription: string;
+  remarks: string;
 };
 
 const people = ["Juan Dela Cruz", "Maria Santos", "Pedro Reyes", "Ana Lopez"];
+const departments = [
+  "IT Department",
+  "HR Department",
+  "Finance Department",
+  "Marketing Department",
+];
+const branches = ["Main Branch", "East Branch", "West Branch", "North Branch"];
+const misNames = ["MIS-001", "MIS-002", "MIS-003", "MIS-004"];
 
 export default function DashboardPage() {
+  type ItemRow = {
+    qty: number;
+    unit: string;
+    itemDescription: string;
+    remarks: string;
+  };
+
   const [items, setItems] = React.useState<ItemRow[]>([
-    { qty: "", unit: "", item: "", description: "" },
+    { qty: 0, unit: "", itemDescription: "", remarks: "" },
   ]);
 
-  const handleChange = (index: number, field: keyof ItemRow, value: string) => {
-    const updated = [...items];
-    updated[index][field] = value;
+  const handleChange = (
+    index: number,
+    field: keyof ItemRow,
+    value: string | number
+  ) => {
+    let updated = [...items];
 
-    // auto-add new row if typing in last row
+    if (field === "qty") {
+      updated[index][field] = Number(value); // convert to number
+    } else {
+      updated[index][field] = String(value);
+    }
+
+    // Remove rows that are completely empty except the first row
+    updated = updated.filter((row, i) => {
+      const isEmpty =
+        row.qty === 0 &&
+        row.unit === "" &&
+        row.itemDescription === "" &&
+        row.remarks === "";
+      return !isEmpty || i === 0;
+    });
+
+    // Add a new empty row if the last row has any value
+    const lastRow = updated[updated.length - 1];
     if (
-      index === items.length - 1 &&
-      Object.values(updated[index]).some((v) => v !== "")
+      lastRow.qty !== 0 ||
+      lastRow.unit !== "" ||
+      lastRow.itemDescription !== "" ||
+      lastRow.remarks !== ""
     ) {
-      updated.push({ qty: "", unit: "", item: "", description: "" });
+      updated.push({ qty: 0, unit: "", itemDescription: "", remarks: "" });
     }
 
     setItems(updated);
@@ -44,37 +81,71 @@ export default function DashboardPage() {
 
   return (
     <div className="grid gap-4 h-full">
-      <div className="rounded-xl border shadow-lg p-6 bg-white">
+      <div className="rounded-xl border shadow-lg p-6 pl-10 pr-10 bg-white">
         <h2 className="text-xl font-semibold mb-4">Recommendation Form</h2>
 
         <form className="grid gap-6">
           {/* DETAILS */}
           {/* DETAILS + SERIES NO */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label className="mt-1">Series No.</Label>
-              <Input placeholder="SR-0001" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-50">
+            {/* LEFT COLUMN */}
+            <div className="flex flex-col gap-1">
+              {/* Series No */}
+
+              <div className="flex items-center gap-3">
+                <Label className="w-28">Series No.</Label>
+                <Input placeholder="SR-0001" className="w-40" readOnly />{" "}
+                {/* width 10rem */}
+              </div>
+
+              {/* Status */}
+              <div className="flex items-center gap-3">
+                <Label className="w-28">Status</Label>
+                <Input placeholder="Pending" className="flex-1" />
+              </div>
+
+              {/* Branch */}
+              <div className="flex items-center gap-3">
+                <Label className="w-28">Branch</Label>
+                <SelectField options={branches} />
+              </div>
+
+              {/* Department */}
+              <div className="flex items-center gap-3">
+                <Label className="w-28">Department</Label>
+                <SelectField options={departments} />
+              </div>
+
+              {/* MIS Name */}
+              <div className="flex items-center gap-3">
+                <Label className="w-28">MIS Name</Label>
+                <SelectField options={misNames} />
+              </div>
+
+              {/* Date */}
+              <div className="flex items-center gap-3">
+                <Label className="w-28">Date</Label>
+                <Input type="date" className="flex-1" />
+              </div>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <Label className="mt-1">Details</Label>
-              <Textarea
-                placeholder="Enter details..."
-                rows={3}
-                defaultValue="We would like to request"
-              />
-            </div>
-          </div>
+            {/* RIGHT COLUMN */}
+            <div className="flex flex-col gap-4">
+              {/* Request Details */}
+              <div className="flex gap-3 h-full">
+                <Label className="w-28 self-start mt-2">Request Details</Label>
+                <Textarea
+                  placeholder="Enter details..."
+                  defaultValue="We would like to request"
+                  className="flex-1 h-full resize-none"
+                />
+              </div>
 
-          {/* DATE & PO */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label>Date</Label>
-              <Input type="date" />
-            </div>
-            <div className="grid gap-2">
-              <Label>PO Number</Label>
-              <Input placeholder="PO-0001" />
+              {/* PO Number */}
+              <div className="flex items-center gap-3 mt-4">
+                <Label className="w-28">PO Number</Label>
+                <Input placeholder="PO-0001" className="flex-1" />
+              </div>
             </div>
           </div>
 
@@ -90,9 +161,9 @@ export default function DashboardPage() {
                       Qty
                     </th>
                     <th className="px-2 py-1 text-left w-28">Unit</th>
-                    <th className="px-2 py-1 text-left">Item</th>
+                    <th className="px-2 py-1 text-left">Item Discription</th>
                     <th className="px-2 py-1 text-left rounded-tr-xl">
-                      Description
+                      Remarks
                     </th>
                   </tr>
                 </thead>
@@ -105,6 +176,8 @@ export default function DashboardPage() {
                         }`}
                       >
                         <Input
+                          type="number"
+                          min={0} // optional, prevents negative numbers
                           value={row.qty}
                           onChange={(e) =>
                             handleChange(index, "qty", e.target.value)
@@ -129,9 +202,13 @@ export default function DashboardPage() {
                         }`}
                       >
                         <Input
-                          value={row.item}
+                          value={row.itemDescription}
                           onChange={(e) =>
-                            handleChange(index, "item", e.target.value)
+                            handleChange(
+                              index,
+                              "itemDescription",
+                              e.target.value
+                            )
                           }
                         />
                       </td>
@@ -141,9 +218,9 @@ export default function DashboardPage() {
                         }`}
                       >
                         <Input
-                          value={row.description}
+                          value={row.remarks}
                           onChange={(e) =>
-                            handleChange(index, "description", e.target.value)
+                            handleChange(index, "remarks", e.target.value)
                           }
                         />
                       </td>
@@ -155,22 +232,94 @@ export default function DashboardPage() {
           </div>
 
           {/* SIGNATORIES */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <SelectField label="Requested By" />
-            <SelectField label="Checked By" />
+          {/* SIGNATORIES */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-50">
+            {/* LEFT COLUMN */}
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-3">
+                <Label className="w-28">Prepared By</Label>
+                <SelectField options={people} />
+              </div>
 
-            <SelectField label="Received By" />
-            <SelectField label="Management" />
+              <div className="flex items-center gap-3">
+                <Label className="w-28">Requested By</Label>
+                <SelectField options={people} />
+              </div>
 
-            <SelectField label="Approved By" />
-            <SelectField label="Head" />
+              <div className="flex items-center gap-3">
+                <Label className="w-28">Req Destination</Label>
+                <SelectField options={people} />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Label className="w-28">Checked By</Label>
+                <SelectField options={people} />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Label className="w-28">Check Designation</Label>
+                <SelectField options={departments} />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Label className="w-28">Department Head</Label>
+                <SelectField options={departments} />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Label className="w-28">Dept Designation</Label>
+                <SelectField options={departments} />
+              </div>
+            </div>
+
+            {/* RIGHT COLUMN */}
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-3">
+                <Label className="w-28">Purchaser</Label>
+                <SelectField options={people} />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Label className="w-28">Pur Designation</Label>
+                <SelectField options={departments} />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Label className="w-28">Property Custodian</Label>
+                <SelectField options={people} />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Label className="w-28">Management</Label>
+                <SelectField options={people} />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Label className="w-28">Management</Label>
+                <SelectField options={people} />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Label className="w-28">Accounting Head</Label>
+                <SelectField options={people} />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Label className="w-28">Acct. Designation</Label>
+                <SelectField options={departments} />
+              </div>
+            </div>
           </div>
 
           {/* SUBMIT */}
           <div className="flex justify-start gap-2 ">
             <Button type="submit">Save</Button>
-            <Button type="submit">Update</Button>
-            <Button type="submit">Print</Button>
+            <Button type="submit" variant="outline">
+              Update
+            </Button>
+            <Button type="submit" variant="secondary">
+              Print
+            </Button>
           </div>
         </form>
       </div>
@@ -179,18 +328,19 @@ export default function DashboardPage() {
 }
 
 /* Reusable Select */
-function SelectField({ label }: { label: string }) {
+/* Reusable Select */
+
+function SelectField({ options }: { options: string[] }) {
   return (
-    <div className="grid gap-2">
-      <Label>{label}</Label>
+    <div className="flex-1">
       <Select>
-        <SelectTrigger>
-          <SelectValue placeholder={`Select ${label}`} />
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Select" />
         </SelectTrigger>
         <SelectContent>
-          {people.map((person) => (
-            <SelectItem key={person} value={person}>
-              {person}
+          {options.map((option) => (
+            <SelectItem key={option} value={option}>
+              {option}
             </SelectItem>
           ))}
         </SelectContent>
