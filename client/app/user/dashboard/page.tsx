@@ -125,8 +125,11 @@ export default function DashboardPage() {
               {/* Date */}
               <div className="flex items-center gap-3">
                 <Label className="w-28">Date</Label>
-                <Input type="date" className="flex-1" />
+                <Input type="date" className="w-40" />
               </div>
+
+
+
             </div>
 
             {/* RIGHT COLUMN */}
