@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import React, { useState } from "react"; // <-- keep this
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import FilterPopup from "@/components/FilterPopup";
+
+
+
 
 type ItemRow = {
   qty: string;
@@ -79,10 +83,48 @@ export default function DashboardPage() {
     setItems(updated);
   };
 
+
+
+  const [filteredValues, setFilteredValues] = useState<string[]>([]);
+
+  const data = [
+    "APEX PAPER SOLUTIONS, INC.",
+    "AVIOR HOTEL",
+    "BUILDMORE ACHARON",
+    "BUILDMORE APOPNOG",
+    "BUILDMORE STORE 1",
+    "BUILDMORE STORE 2",
+    "DADIANGAS CORNERSTONE CENTER"
+  ];
+
+  
   return (
     <div className="grid gap-4 h-full">
       <div className="rounded-xl border shadow-lg p-6 pl-10 pr-10 details-section">
         <h2 className="text-xl font-semibold mb-4">Recommendation Form</h2>
+
+
+
+
+      <FilterPopup
+        values={data}
+        onApply={(selected) => {
+          setFilteredValues(selected);
+          console.log("Selected:", selected);
+        }}
+      />
+
+      <div style={{ marginTop: 20 }}>
+        <strong>Filtered Result:</strong>
+        <ul>
+          {filteredValues.map(v => (
+            <li key={v}>{v}</li>
+          ))}
+        </ul>
+      </div>
+ 
+
+
 
         <form className="grid gap-6 " >
           {/* DETAILS */}

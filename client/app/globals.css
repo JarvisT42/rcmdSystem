@@ -132,3 +132,100 @@
   padding: 1rem;
 }
 
+
+
+
+
+
+/* FilterPopup.css */
+
+.popup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 250px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 12px;
+  z-index: 100;
+}
+
+.tabs {
+  display: flex;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.tabs button {
+  flex: 1;
+  padding: 6px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: #555;
+  transition: color 0.2s, border-bottom 0.2s;
+}
+
+.tabs button.active {
+  color: #1e90ff;
+  border-bottom: 2px solid #1e90ff;
+}
+
+.search {
+  width: 100%;
+  padding: 6px 8px;
+  margin-bottom: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.list {
+  max-height: 150px;
+  overflow-y: auto;
+  padding-left: 4px;
+  margin-bottom: 8px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+
+.list label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.list input[type="checkbox"] {
+  margin-right: 6px;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.footer button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  background-color: #1e90ff;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.footer button:hover {
+  background-color: #0f78d1;
+}
+
+.text-filter {
+  padding: 8px;
+  font-size: 14px;
+  color: #333;
+}
