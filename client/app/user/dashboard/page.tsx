@@ -81,16 +81,17 @@ export default function DashboardPage() {
 
   return (
     <div className="grid gap-4 h-full">
-      <div className="rounded-xl border shadow-lg p-6 pl-10 pr-10 bg-white">
+      <div className="rounded-xl border shadow-lg p-6 pl-10 pr-10 details-section">
         <h2 className="text-xl font-semibold mb-4">Recommendation Form</h2>
 
-        <form className="grid gap-6">
+        <form className="grid gap-6 " >
           {/* DETAILS */}
           {/* DETAILS + SERIES NO */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-50">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-50 " >
             {/* LEFT COLUMN */}
             <div className="flex flex-col gap-1">
-              {/* Series No */}
+         
+
 
               <div className="flex items-center gap-3">
                 <Label className="w-28">Series No.</Label>
@@ -156,9 +157,10 @@ export default function DashboardPage() {
           <div className="grid gap-2">
             <Label>Requested Items</Label>
 
-            <div className="overflow-x-auto rounded-xl border">
-              <table className="w-full border-collapse">
-                <thead className="border-b">
+            <div className="overflow-x-auto rounded-xl border border-black">
+              <table className="w-full border-collapse ">
+              <thead className="border-b border-black">
+
                   <tr>
                     <th className="px-2 py-1 text-left w-24 rounded-tl-xl">
                       Qty
