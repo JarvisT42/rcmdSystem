@@ -1,72 +1,68 @@
-// "use client";
-
-// import Link from "next/link";
-
-// export default function Home() {
-//   return (
-//     <main className="min-h-screen flex flex-col items-center justify-center gap-6">
-//       <h1 className="text-3xl font-bold">Home Page</h1>
-
-//       <nav className="flex gap-4">
-//         <Link href="/history" className="px-4 py-2 rounded-xl shadow">
-//           Go to History
-//         </Link>
-//         <Link href="/settings" className="px-4 py-2 rounded-xl shadow">
-//           Go to Settings
-//         </Link>
-//       </nav>
-//     </main>
-//   );
-// }
-
 "use client";
 
 import { useState } from "react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { FilterDialog } from "@/components/filter-dialog";
+import { Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
-  const [showFilter, setShowFilter] = useState(true);
+  const [open, setOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
   const filterItems = [
     { id: "1", label: "AVIOR HOTEL" },
     { id: "2", label: "DADLANGAS GLASS AND CONSTRUCT" },
     { id: "3", label: "EVERGREEN HOMES" },
-    { id: "4", label: "EVERGREEN HOMES" },
-    { id: "5", label: "EVERGREEN HOMES" },
-    { id: "6", label: "EVERGREEN HOMES" },
+    { id: "4", label: "JAMES CONSTRUCTION" },
+    { id: "5", label: "MARIA'S BAKERY" },
+    { id: "6", label: "TECH SOLUTIONS INC" },
   ];
 
   const handleApply = (items: string[]) => {
     setSelectedItems(items);
+    setOpen(false); // Close popover after applying
+  };
+
+  const handleClose = () => {
+    setOpen(false);
   };
 
   return (
     <main className="min-h-screen bg-background p-8">
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold">Filter Dialog Component</h1>
-        <p className="text-muted-foreground">
-          Selected items:{" "}
-          {selectedItems.length > 0 ? selectedItems.join(", ") : "None"}
-        </p>
 
-        {showFilter && (
-          <FilterDialog
-            items={filterItems}
-            selectedItems={selectedItems}
-            onClose={() => setShowFilter(false)}
-            onApply={handleApply}
-          />
-        )}
+        
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="flex items-center gap-2">
+              <Filter className="h-4 w-4" />
+              Filter
+              {selectedItems.length > 0 && (
+                <span className="ml-1 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                  {selectedItems.length}
+                </span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0 border-0" align="start">
+            <div className="relative">
+              <FilterDialog
+                items={filterItems}
+                selectedItems={selectedItems}
+                onClose={handleClose}
+                onApply={handleApply}
+              />
+            </div>
+          </PopoverContent>
+        </Popover>
 
-        {!showFilter && (
-          <button
-            onClick={() => setShowFilter(true)}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
-          >
-            Open Filter
-          </button>
-        )}
+       
+        
       </div>
     </main>
   );
