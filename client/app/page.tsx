@@ -33,10 +33,9 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-background p-8">
       <div className="space-y-4">
 
-        
+
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button variant="outline" className="flex items-center gap-2">
@@ -64,6 +63,6 @@ export default function Home() {
        
         
       </div>
-    </main>
+   
   );
 }
