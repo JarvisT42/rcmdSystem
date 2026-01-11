@@ -342,7 +342,32 @@ const createHeaderComponent = (key: keyof Payment, label: string) => {
 };
 
 /* =======================
-   COLUMN HELPER - FIXED VERSION
+   CUSTOM FILTER FUNCTION
+======================= */
+const multiValueFilterFn: any = (row: any, columnId: string, filterValue: any) => {
+  // If no filter value, show all rows
+  if (!filterValue || filterValue.length === 0) {
+    return true;
+  }
+  
+  // Get the cell value
+  const cellValue = row.getValue(columnId) as string;
+  
+  // If filterValue is an array, check if cellValue is in the array
+  if (Array.isArray(filterValue)) {
+    return filterValue.includes(cellValue);
+  }
+  
+  // If filterValue is a string, do simple comparison
+  if (typeof filterValue === 'string') {
+    return cellValue.toLowerCase().includes(filterValue.toLowerCase());
+  }
+  
+  return true;
+};
+
+/* =======================
+   COLUMN HELPER - UPDATED WITH FILTER FUNCTION
 ======================= */
 const textColumn = (key: keyof Payment, label: string): ColumnDef<Payment> => ({
   accessorKey: key,
@@ -350,6 +375,7 @@ const textColumn = (key: keyof Payment, label: string): ColumnDef<Payment> => ({
   cell: ({ row }) => (
     <div className="font-medium whitespace-nowrap">{row.getValue(key)}</div>
   ),
+  filterFn: multiValueFilterFn,
 });
 
 /* =======================
@@ -363,6 +389,7 @@ export const columns: ColumnDef<Payment>[] = [
     cell: ({ row }) => row.index + 1,
     enableSorting: false,
     enableHiding: false,
+    filterFn: multiValueFilterFn,
   },
 
   textColumn("branch", "Branch"),
@@ -412,7 +439,7 @@ export default function DataTableDemo() {
     // Set initial page size
     initialState: {
       pagination: {
-        pageSize: 10,
+        pageSize: 15,
       },
     },
   });
