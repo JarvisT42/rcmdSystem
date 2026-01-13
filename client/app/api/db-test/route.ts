@@ -1,18 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createConnection } from "../../../lib/db"; // adjust path
+import { NextResponse } from "next/server";
+import { getDb } from "@/lib/db";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    const pool = await createConnection(); // connect to SQL Server
-
-    // Query the Users table
-    const result = await pool.request().query("SELECT * FROM Users");
-
-    console.log("✅ Users table result:", result.recordset); // prints in terminal
-
-    return NextResponse.json({ success: true, users: result.recordset });
-  } catch (err) {
-    console.error("❌ Connection failed or query error:", err);
-    return NextResponse.json({ success: false, error: String(err) }, { status: 500 });
+    const db = await getDb();
+    return NextResponse.json({
+      success: true,
+      
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: "Database connection failed" },
+      { status: 500 }
+    );
   }
 }

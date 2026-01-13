@@ -14,9 +14,6 @@ import {
 } from "@/components/ui/select";
 import FilterPopup from "@/components/FilterPopup";
 
-
-
-
 type ItemRow = {
   qty: string;
   unit: string;
@@ -83,8 +80,6 @@ export default function DashboardPage() {
     setItems(updated);
   };
 
-
-
   const [filteredValues, setFilteredValues] = useState<string[]>([]);
 
   const data = [
@@ -94,50 +89,74 @@ export default function DashboardPage() {
     "BUILDMORE APOPNOG",
     "BUILDMORE STORE 1",
     "BUILDMORE STORE 2",
-    "DADIANGAS CORNERSTONE CENTER"
+    "DADIANGAS CORNERSTONE CENTER",
   ];
 
-  
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+
+  const formData = new FormData(e.currentTarget);
+  const action = formData.get("action")?.toString() || "save";
+  const details = formData.get("request_details")?.toString().trim() || "";
+
+  if (!details) {
+    alert("Please enter request details!");
+    return;
+  }
+
+  // Optional: gather other fields here, e.g., series_no, PO number, etc.
+
+  const res = await fetch("/api/request", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ details, action }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    console.error("API error:", error);
+    return;
+  }
+
+  console.log("Saved successfully");
+
+  if (action === "print") {
+    window.print();
+  }
+};
+
+
   return (
     <div className="grid gap-4 h-full">
       <div className="rounded-xl border shadow-lg p-6 pl-10 pr-10 details-section">
         <h2 className="text-xl font-semibold mb-4">Recommendation Form</h2>
 
+        <FilterPopup
+          values={data}
+          onApply={(selected) => {
+            setFilteredValues(selected);
+            console.log("Selected:", selected);
+          }}
+        />
 
+        <div style={{ marginTop: 20 }}>
+          <strong>Filtered Result:</strong>
+          <ul>
+            {filteredValues.map((v) => (
+              <li key={v}>{v}</li>
+            ))}
+          </ul>
+        </div>
 
-
-      <FilterPopup
-        values={data}
-        onApply={(selected) => {
-          setFilteredValues(selected);
-          console.log("Selected:", selected);
-        }}
-      />
-
-      <div style={{ marginTop: 20 }}>
-        <strong>Filtered Result:</strong>
-        <ul>
-          {filteredValues.map(v => (
-            <li key={v}>{v}</li>
-          ))}
-        </ul>
-      </div>
- 
-
-
-
-        <form className="grid gap-6 " >
+        <form onSubmit={handleSubmit} className="grid gap-6 ">
           {/* DETAILS */}
           {/* DETAILS + SERIES NO */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-50 " >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-50 ">
             {/* LEFT COLUMN */}
             <div className="flex flex-col gap-1">
-         
-
-
               <div className="flex items-center gap-3">
                 <Label className="w-28">Series No.</Label>
-                <Input placeholder="SR-0001" className="w-40" readOnly />{" "}
+                <Input placeholder="0001" className="w-40" readOnly />{" "}
                 {/* width 10rem */}
               </div>
 
@@ -170,9 +189,6 @@ export default function DashboardPage() {
                 <Label className="w-28">Date</Label>
                 <Input type="date" className="w-40" />
               </div>
-
-
-
             </div>
 
             {/* RIGHT COLUMN */}
@@ -180,7 +196,9 @@ export default function DashboardPage() {
               {/* Request Details */}
               <div className="flex gap-3 h-full">
                 <Label className="w-28 self-start mt-2">Request Details</Label>
+
                 <Textarea
+                  name="request_details"
                   placeholder="Enter details..."
                   defaultValue="We would like to request"
                   className="flex-1 h-full resize-none"
@@ -201,8 +219,7 @@ export default function DashboardPage() {
 
             <div className="overflow-x-auto rounded-xl border border-black">
               <table className="w-full border-collapse ">
-              <thead className="border-b border-black">
-
+                <thead className="border-b border-black">
                   <tr>
                     <th className="px-2 py-1 text-left w-24 rounded-tl-xl">
                       Qty
@@ -360,11 +377,19 @@ export default function DashboardPage() {
 
           {/* SUBMIT */}
           <div className="flex justify-start gap-2 ">
-            <Button type="submit">Save</Button>
-            <Button type="submit" variant="outline">
-              Update
+            <Button type="submit" name="action" value="save">
+              Save
             </Button>
-            <Button type="submit" variant="secondary">
+          <Button type="submit" name="action" value="update" variant="outline">
+  Update
+</Button>
+
+            <Button
+              type="submit"
+              name="action"
+              value="print"
+              variant="secondary"
+            >
               Print
             </Button>
           </div>

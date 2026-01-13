@@ -344,9 +344,9 @@ const createHeaderComponent = (key: keyof Payment, label: string) => {
 /* =======================
    CUSTOM FILTER FUNCTION
 ======================= */
-const multiValueFilterFn: any = (row: any, columnId: string, filterValue: any) => {
+const multiValueFilterFn = (row: { getValue: (id: string) => unknown }, columnId: string, filterValue: unknown): boolean => {
   // If no filter value, show all rows
-  if (!filterValue || filterValue.length === 0) {
+  if (!filterValue || (Array.isArray(filterValue) && filterValue.length === 0)) {
     return true;
   }
   
