@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import sql from "mssql";
-import { getDb } from "@/lib/db"; // adjust path if needed
+import { getDb } from "@/lib/db";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { details, action, id } = body;
+    const { details, action, id, branchId } = body;
 
     if (!details) {
       return NextResponse.json(
@@ -18,13 +18,20 @@ export async function POST(req: Request) {
     const request = pool.request();
 
     request.input("details", sql.NVarChar, details);
+    
+    // Add branchId input
+    if (branchId) {
+      request.input("branchId", sql.Int, parseInt(branchId));
+    } else {
+      request.input("branchId", sql.Int, null);
+    }
 
     // SAVE
     if (action === "save") {
       await request.query(`
-        INSERT INTO request (request_details)
-        VALUES (@details)
-    `);
+        INSERT INTO request (request_details, branch_id)
+        VALUES (@details, @branchId)
+      `);
     }
 
     // UPDATE
@@ -40,7 +47,7 @@ export async function POST(req: Request) {
 
       await request.query(`
         UPDATE requests
-        SET request_details = @details
+        SET request_details = @details, branch_id = @branchId
         WHERE id = @id
       `);
     }
