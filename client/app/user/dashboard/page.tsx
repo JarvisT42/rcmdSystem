@@ -12,17 +12,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import FilterPopup from "@/components/FilterPopup";
 
 // Define Branch type
 type Branch = {
   branch_id: number;
   branch_name: string;
+};
+
+// Define department type
+type Department = {
+  dept_id: number;
+  dept_name: string;
 };
 
 type ItemRow = {
@@ -33,12 +35,7 @@ type ItemRow = {
 };
 
 const people = ["Juan Dela Cruz", "Maria Santos", "Pedro Reyes", "Ana Lopez"];
-const departments = [
-  "IT Department",
-  "HR Department",
-  "Finance Department",
-  "Marketing Department",
-];
+
 const misNames = ["MIS-001", "MIS-002", "MIS-003", "MIS-004"];
 
 export default function DashboardPage() {
@@ -54,15 +51,66 @@ export default function DashboardPage() {
   ]);
 
   // State for branch from API
-  const [branch, setbranch] = useState<Branch[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [branch, setBranch] = useState<Branch[]>([]);
+  const [department, setDepartment] = useState<Department[]>([]);
+  const [branchLoading, setBranchLoading] = useState(true);
+  const [departmentLoading, setDepartmentLoading] = useState(true);
+  const [branchError, setBranchError] = useState<string | null>(null);
+  const [departmentError, setDepartmentError] = useState<string | null>(null);
+
+  const fetchbranch = async () => {
+    try {
+      setBranchLoading(true);
+      const response = await fetch("/api/branch");
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch branch");
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setBranch(data.data);
+      } else {
+        setBranchError(data.message || "Failed to fetch branch");
+      }
+    } catch (err) {
+      console.error("Error fetching branch:", err);
+      setBranchError("Failed to load branch");
+    } finally {
+      setBranchLoading(false);
+    }
+  };
+
+  const fetchdepartment = async () => {
+    try {
+      setDepartmentLoading(true);
+      const response = await fetch("/api/department");
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch department");
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setDepartment(data.data);
+      } else {
+        setDepartmentError(data.message || "Failed to fetch department");
+      }
+    } catch (err) {
+      console.error("Error fetching department:", err);
+      setDepartmentError("Failed to load department");
+    } finally {
+      setDepartmentLoading(false);
+    }
+  };
 
   // State for form submission
   const [submitStatus, setSubmitStatus] = useState<{
-    type: 'success' | 'error' | null;
+    type: "success" | "error" | null;
     message: string;
-  }>({ type: null, message: '' });
+  }>({ type: null, message: "" });
 
   // State for network status
   const [isOnline, setIsOnline] = useState(true);
@@ -83,43 +131,19 @@ export default function DashboardPage() {
   // Fetch branch on component mount
   useEffect(() => {
     fetchbranch();
-    
+    fetchdepartment();
     // Set up network listeners
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
     };
   }, []);
-
-  const fetchbranch = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/branch');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch branch');
-      }
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setbranch(data.data);
-      } else {
-        setError(data.message || 'Failed to fetch branch');
-      }
-    } catch (err) {
-      console.error('Error fetching branch:', err);
-      setError('Failed to load branch');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleChange = (
     index: number,
@@ -160,32 +184,29 @@ export default function DashboardPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitStatus({ type: null, message: '' });
+    setSubmitStatus({ type: null, message: "" });
 
     const formData = new FormData(e.currentTarget);
     const action = formData.get("action")?.toString() || "save";
     const details = formData.get("request_details")?.toString().trim() || "";
     const branchId = formData.get("branch")?.toString() || "";
-    
 
     // Validation
     if (!details) {
       setSubmitStatus({
-        type: 'error',
-        message: 'Please enter request details!'
+        type: "error",
+        message: "Please enter request details!",
       });
       return;
     }
 
     if (!branchId) {
       setSubmitStatus({
-        type: 'error',
-        message: 'Please select a branch!'
+        type: "error",
+        message: "Please select a branch!",
       });
       return;
     }
-
-
 
     try {
       const res = await fetch("/api/request", {
@@ -194,8 +215,7 @@ export default function DashboardPage() {
         body: JSON.stringify({
           details,
           action,
-          branchId
-         
+          branchId,
         }),
       });
 
@@ -205,10 +225,10 @@ export default function DashboardPage() {
       }
 
       const result = await res.json();
-      
+
       setSubmitStatus({
-        type: 'success',
-        message: result.message || 'Request saved successfully!'
+        type: "success",
+        message: result.message || "Request saved successfully!",
       });
 
       console.log("Saved successfully");
@@ -216,21 +236,18 @@ export default function DashboardPage() {
       // Auto-dismiss success message after 5 seconds
       if (action !== "print") {
         setTimeout(() => {
-          setSubmitStatus({ type: null, message: '' });
+          setSubmitStatus({ type: null, message: "" });
         }, 5000);
       }
 
       if (action === "print") {
         window.print();
       }
-
-      
-
     } catch (err) {
       console.error("API error:", err);
       setSubmitStatus({
-        type: 'error',
-        message: err instanceof Error ? err.message : "Failed to save request"
+        type: "error",
+        message: err instanceof Error ? err.message : "Failed to save request",
       });
     }
   };
@@ -252,24 +269,18 @@ export default function DashboardPage() {
 
         {/* Submit Status Alert */}
         {submitStatus.type && (
-          <Alert 
-            variant={submitStatus.type === 'success' ? 'default' : 'destructive'} 
+          <Alert
+            variant={
+              submitStatus.type === "success" ? "default" : "destructive"
+            }
             className="mb-4"
           >
             <AlertTitle>
-              {submitStatus.type === 'success' ? 'Success' : 'Error'}
+              {submitStatus.type === "success" ? "Success" : "Error"}
             </AlertTitle>
-            <AlertDescription>
-              {submitStatus.message}
-            </AlertDescription>
+            <AlertDescription>{submitStatus.message}</AlertDescription>
           </Alert>
         )}
-
-      
-
-      
-
-        
 
         <form onSubmit={handleSubmit} className="grid gap-6 ">
           {/* DETAILS */}
@@ -279,24 +290,25 @@ export default function DashboardPage() {
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-3">
                 <Label className="w-28">Series No.</Label>
-                <Input 
-                  placeholder="0001" 
-                  className="w-40" 
+                <Input
+                  placeholder="0001"
+                  className="w-40"
                   name="series_no"
-                  readOnly 
+                  readOnly
                 />
               </div>
 
               {/* Branch */}
+              {/* Branch */}
               <div className="flex items-center gap-3">
                 <Label className="w-28">Branch</Label>
-                {loading ? (
-                  <Input 
-                    placeholder="Loading branch..." 
-                    className="w-40" 
-                    readOnly 
+                {branchLoading ? (
+                  <Input
+                    placeholder="Loading branch..."
+                    className="w-40"
+                    readOnly
                   />
-                ) : error ? (
+                ) : branchError ? (
                   <Alert variant="destructive" className="w-40 p-2">
                     <AlertDescription className="text-xs">
                       Failed to load branch
@@ -304,13 +316,13 @@ export default function DashboardPage() {
                   </Alert>
                 ) : (
                   <Select name="branch">
-                    <SelectTrigger className="w-40">
+                    <SelectTrigger className="w-40 ">
                       <SelectValue placeholder="Select Branch" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent >
                       {branch.map((branch) => (
-                        <SelectItem 
-                          key={branch.branch_id} 
+                        <SelectItem
+                          key={branch.branch_id}
                           value={branch.branch_id.toString()}
                         >
                           {branch.branch_name}
@@ -322,9 +334,38 @@ export default function DashboardPage() {
               </div>
 
               {/* Department */}
+              {/* Department */}
               <div className="flex items-center gap-3">
                 <Label className="w-28">Department</Label>
-                <SelectField options={departments} name="department" />
+                {departmentLoading ? (
+                  <Input
+                    placeholder="Loading department..."
+                    className="w-40"
+                    readOnly
+                  />
+                ) : departmentError ? (
+                  <Alert variant="destructive" className="w-40 p-2">
+                    <AlertDescription className="text-xs">
+                      Failed to load department
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <Select name="department">
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Select Department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {department.map((dept) => (
+                        <SelectItem
+                          key={dept.dept_id}
+                          value={dept.dept_id.toString()}
+                        >
+                          {dept.dept_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
 
               {/* MIS Name */}
@@ -336,11 +377,12 @@ export default function DashboardPage() {
               {/* Date */}
               <div className="flex items-center gap-3">
                 <Label className="w-28">Date</Label>
-                <Input 
-                  type="date" 
-                  className="w-40" 
+                <Input
+                  type="date"
+                  className="w-40"
                   name="date"
-                  required 
+                  value={new Date().toISOString().split("T")[0]} // autofill today
+                  readOnly
                 />
               </div>
             </div>
@@ -362,10 +404,10 @@ export default function DashboardPage() {
               {/* PO Number */}
               <div className="flex items-center gap-3 mt-4">
                 <Label className="w-28">PO Number</Label>
-                <Input 
-                  placeholder="PO-0001" 
-                  className="flex-1" 
-                  name="po_number" 
+                <Input
+                  placeholder="PO-0001"
+                  className="flex-1"
+                  name="po_number"
                 />
               </div>
             </div>
@@ -479,17 +521,17 @@ export default function DashboardPage() {
 
               <div className="flex items-center gap-3">
                 <Label className="w-28">Check Designation</Label>
-                <SelectField options={departments} name="check_designation" />
+                <SelectField options={data} name="check_designation" />
               </div>
 
               <div className="flex items-center gap-3">
                 <Label className="w-28">Department Head</Label>
-                <SelectField options={departments} name="department_head" />
+                <SelectField options={data} name="department_head" />
               </div>
 
               <div className="flex items-center gap-3">
                 <Label className="w-28">Dept Designation</Label>
-                <SelectField options={departments} name="dept_designation" />
+                <SelectField options={data} name="dept_designation" />
               </div>
             </div>
 
@@ -502,7 +544,7 @@ export default function DashboardPage() {
 
               <div className="flex items-center gap-3">
                 <Label className="w-28">Pur Designation</Label>
-                <SelectField options={departments} name="pur_designation" />
+                <SelectField options={people} name="pur_designation" />
               </div>
 
               <div className="flex items-center gap-3">
@@ -527,7 +569,7 @@ export default function DashboardPage() {
 
               <div className="flex items-center gap-3">
                 <Label className="w-28">Acct. Designation</Label>
-                <SelectField options={departments} name="acct_designation" />
+                <SelectField options={people} name="acct_designation" />
               </div>
             </div>
           </div>
@@ -562,7 +604,7 @@ export default function DashboardPage() {
 }
 
 /* Reusable Select Component */
-function SelectField({ options, name }: { options: string[], name?: string }) {
+function SelectField({ options, name }: { options: string[]; name?: string }) {
   return (
     <div className="flex-1">
       <Select name={name}>
