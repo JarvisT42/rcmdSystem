@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import FilterPopup from "@/components/FilterPopup";
+import { Loader2 } from "lucide-react"; // Import a loading icon
 
 // Define Branch type
 type Branch = {
@@ -27,8 +28,13 @@ type Department = {
   dept_name: string;
 };
 
+type misName = {
+  mis_id: number;
+  mis_name: string;
+};
+
 type ItemRow = {
-  qty: string;
+  qty: number;
   unit: string;
   itemDescription: string;
   remarks: string;
@@ -36,16 +42,7 @@ type ItemRow = {
 
 const people = ["Juan Dela Cruz", "Maria Santos", "Pedro Reyes", "Ana Lopez"];
 
-const misNames = ["MIS-001", "MIS-002", "MIS-003", "MIS-004"];
-
 export default function DashboardPage() {
-  type ItemRow = {
-    qty: number;
-    unit: string;
-    itemDescription: string;
-    remarks: string;
-  };
-
   const [items, setItems] = React.useState<ItemRow[]>([
     { qty: 0, unit: "", itemDescription: "", remarks: "" },
   ]);
@@ -53,58 +50,14 @@ export default function DashboardPage() {
   // State for branch from API
   const [branch, setBranch] = useState<Branch[]>([]);
   const [department, setDepartment] = useState<Department[]>([]);
-  const [branchLoading, setBranchLoading] = useState(true);
-  const [departmentLoading, setDepartmentLoading] = useState(true);
+  const [misName, setMisName] = useState<misName[]>([]);
+  
+  // Combined loading state
+  const [isLoading, setIsLoading] = useState(true);
+  
   const [branchError, setBranchError] = useState<string | null>(null);
   const [departmentError, setDepartmentError] = useState<string | null>(null);
-
-  const fetchbranch = async () => {
-    try {
-      setBranchLoading(true);
-      const response = await fetch("/api/branch");
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch branch");
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        setBranch(data.data);
-      } else {
-        setBranchError(data.message || "Failed to fetch branch");
-      }
-    } catch (err) {
-      console.error("Error fetching branch:", err);
-      setBranchError("Failed to load branch");
-    } finally {
-      setBranchLoading(false);
-    }
-  };
-
-  const fetchdepartment = async () => {
-    try {
-      setDepartmentLoading(true);
-      const response = await fetch("/api/department");
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch department");
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        setDepartment(data.data);
-      } else {
-        setDepartmentError(data.message || "Failed to fetch department");
-      }
-    } catch (err) {
-      console.error("Error fetching department:", err);
-      setDepartmentError("Failed to load department");
-    } finally {
-      setDepartmentLoading(false);
-    }
-  };
+  const [misNameError, setMisNameError] = useState<string | null>(null);
 
   // State for form submission
   const [submitStatus, setSubmitStatus] = useState<{
@@ -128,10 +81,54 @@ export default function DashboardPage() {
     "DADIANGAS CORNERSTONE CENTER",
   ];
 
-  // Fetch branch on component mount
+  // Fetch all data with Promise.all for parallel loading
+  const fetchAllData = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Use Promise.all to fetch all data in parallel
+      const [branchRes, deptRes, misRes] = await Promise.all([
+        fetch("/api/branch"),
+        fetch("/api/department"),
+        fetch("/api/misName")
+      ]);
+
+      // Check all responses
+      if (!branchRes.ok) throw new Error("Failed to fetch branch");
+      if (!deptRes.ok) throw new Error("Failed to fetch department");
+      if (!misRes.ok) throw new Error("Failed to fetch mis name");
+
+      const [branchData, deptData, misData] = await Promise.all([
+        branchRes.json(),
+        deptRes.json(),
+        misRes.json()
+      ]);
+
+      // Set data if successful
+      if (branchData.success) setBranch(branchData.data);
+      else setBranchError(branchData.message || "Failed to fetch branch");
+
+      if (deptData.success) setDepartment(deptData.data);
+      else setDepartmentError(deptData.message || "Failed to fetch department");
+
+      if (misData.success) setMisName(misData.data);
+      else setMisNameError(misData.message || "Failed to fetch mis name");
+
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      // Set individual errors based on what failed
+      setBranchError("Failed to load branch");
+      setDepartmentError("Failed to load department");
+      setMisNameError("Failed to load mis name");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch all data on component mount
   useEffect(() => {
-    fetchbranch();
-    fetchdepartment();
+    fetchAllData();
+    
     // Set up network listeners
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -144,6 +141,43 @@ export default function DashboardPage() {
       window.removeEventListener("offline", handleOffline);
     };
   }, []);
+
+  // Loading screen
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+          <h2 className="text-xl font-semibold">Loading Dashboard...</h2>
+          <p className="text-muted-foreground mt-2">
+            Please wait while we load your data
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // If all APIs failed to load
+  if (branchError && departmentError && misNameError) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertTitle>Failed to Load Data</AlertTitle>
+          <AlertDescription>
+            Unable to load required data. Please check your connection and try again.
+            <Button 
+              onClick={fetchAllData} 
+              variant="outline" 
+              size="sm" 
+              className="mt-4"
+            >
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   const handleChange = (
     index: number,
@@ -190,23 +224,8 @@ export default function DashboardPage() {
     const action = formData.get("action")?.toString() || "save";
     const details = formData.get("request_details")?.toString().trim() || "";
     const branchId = formData.get("branch")?.toString() || "";
-
-    // Validation
-    if (!details) {
-      setSubmitStatus({
-        type: "error",
-        message: "Please enter request details!",
-      });
-      return;
-    }
-
-    if (!branchId) {
-      setSubmitStatus({
-        type: "error",
-        message: "Please select a branch!",
-      });
-      return;
-    }
+    const departmentId = formData.get("department")?.toString() || "";
+    const misId = formData.get("mis_name")?.toString() || "";
 
     try {
       const res = await fetch("/api/request", {
@@ -216,6 +235,8 @@ export default function DashboardPage() {
           details,
           action,
           branchId,
+          departmentId,
+          misId,
         }),
       });
 
@@ -299,27 +320,20 @@ export default function DashboardPage() {
               </div>
 
               {/* Branch */}
-              {/* Branch */}
               <div className="flex items-center gap-3">
                 <Label className="w-28">Branch</Label>
-                {branchLoading ? (
-                  <Input
-                    placeholder="Loading branch..."
-                    className="w-40"
-                    readOnly
-                  />
-                ) : branchError ? (
+                {branchError ? (
                   <Alert variant="destructive" className="w-40 p-2">
                     <AlertDescription className="text-xs">
                       Failed to load branch
                     </AlertDescription>
                   </Alert>
                 ) : (
-                  <Select name="branch">
-                    <SelectTrigger className="w-40 ">
+                  <Select name="branch" required>
+                    <SelectTrigger className="w-40">
                       <SelectValue placeholder="Select Branch" />
                     </SelectTrigger>
-                    <SelectContent >
+                    <SelectContent>
                       {branch.map((branch) => (
                         <SelectItem
                           key={branch.branch_id}
@@ -334,16 +348,9 @@ export default function DashboardPage() {
               </div>
 
               {/* Department */}
-              {/* Department */}
               <div className="flex items-center gap-3">
                 <Label className="w-28">Department</Label>
-                {departmentLoading ? (
-                  <Input
-                    placeholder="Loading department..."
-                    className="w-40"
-                    readOnly
-                  />
-                ) : departmentError ? (
+                {departmentError ? (
                   <Alert variant="destructive" className="w-40 p-2">
                     <AlertDescription className="text-xs">
                       Failed to load department
@@ -371,7 +378,29 @@ export default function DashboardPage() {
               {/* MIS Name */}
               <div className="flex items-center gap-3">
                 <Label className="w-28">MIS Name</Label>
-                <SelectField options={misNames} name="mis_name" />
+                {misNameError ? (
+                  <Alert variant="destructive" className="w-40 p-2">
+                    <AlertDescription className="text-xs">
+                      Failed to load mis name
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <Select name="mis_name">
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Select MIS Name" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {misName.map((misName) => (
+                        <SelectItem
+                          key={misName.mis_id}
+                          value={misName.mis_id.toString()}
+                        >
+                          {misName.mis_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
 
               {/* Date */}
@@ -401,13 +430,13 @@ export default function DashboardPage() {
                 />
               </div>
 
-              {/* PO Number */}
+              {/* Purchasing Remarks */}
               <div className="flex items-center gap-3 mt-4">
-                <Label className="w-28">PO Number</Label>
+                <Label className="w-28">Purchasing Remarks</Label>
                 <Input
-                  placeholder="PO-0001"
+                  placeholder="NNew remarks"
                   className="flex-1"
-                  name="po_number"
+                  name="Pur_remarks"
                 />
               </div>
             </div>
